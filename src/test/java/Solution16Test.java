@@ -14,9 +14,9 @@ class Solution16Test {
     void testLargestNumberWithExample1() { //正整数数组
         Solution16 solution = new Solution16();
         int[] nums = {10, 2};
-        String expected = "2";   //此处将expected值由210更改为错误值2
+        String expected = "210";
         String actual = solution.largestNumber(nums);
-        assertEquals(expected, actual);
+        assertEquals(expect, actual);  //此处添加语法错误
     }
 
     @Test
