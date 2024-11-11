@@ -1,20 +1,45 @@
-name: tests
-on: push
+name: tests_and_auto_merge
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
 jobs:
   run_tests:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+
       - name: Set up Java version
         uses: actions/setup-java@v1
         with:
           java-version: '21'
+
       - name: Cache Maven packages
         uses: actions/cache@v2
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
+
       - name: Run tests with Maven
-        run: mvn -B test --file pom.xml
+        run: mvn test
+
+  auto_merge:
+    needs: run_tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && success() && github.actor == '1465566563@qq.com' || github.actor == '1465566563@qq.com'
+    steps:
+      - name: Auto merge Pull Request
+        uses: pascalgn/automerge-action@v0.14.3
+        env:
+          GITHUB_TOKEN: ${{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}}
+          MERGE_METHOD: squash
+          MERGE_COMMIT_MESSAGE: "Auto-merge pull request\n\n* By: ${{ github.actor }}\n* Branch: ${{ github.head_ref }}\n* Commit(s):\n${{ github.event.pull_request.commits | map(commit => `- ${commit.sha.substring(0, 7)} ${commit.commit.message || ''}`) | join('\n') }}"
